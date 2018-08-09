@@ -119,7 +119,7 @@ ARITHMETIC_OP = frozenset(['**', '*', '/', '//', '+', '-'])
 WS_OPTIONAL_OPERATORS = ARITHMETIC_OP.union(['^', '&', '|', '<<', '>>', '%'])
 WS_NEEDED_OPERATORS = frozenset([
     '**=', '*=', '/=', '//=', '+=', '-=', '!=', '<>', '<', '>',
-    '%=', '^=', '&=', '|=', '==', '<=', '>=', '<<=', '>>=', '='])
+    '%=', '^=', '&=', '|=', '==', '<=', '>=', '<<=', '>>=', ':=', '='])
 WHITESPACE = frozenset(' \t')
 NEWLINE = frozenset([tokenize.NL, tokenize.NEWLINE])
 SKIP_TOKENS = NEWLINE.union([tokenize.INDENT, tokenize.DEDENT])
@@ -406,6 +406,8 @@ def extraneous_whitespace(logical_line):
             # assert char in '([{'
             yield found + 1, "E201 whitespace after '%s'" % char
         elif line[found - 1] != ',':
+            if line[found + 2] == '=':
+                continue
             code = ('E202' if char in '}])' else 'E203')  # if char in ',;:'
             yield found, "%s whitespace before '%s'" % (code, char)
 
@@ -471,6 +473,8 @@ def missing_whitespace(logical_line):
         char = line[index]
         if char in ',;:' and line[index + 1] not in WHITESPACE:
             before = line[:index]
+            if line[index+1] == "=":
+                continue # gdscript static typing ":=" assignment
             if char == ':' and before.count('[') > before.count(']') and \
                     before.rfind('{') < before.rfind('['):
                 continue  # Slice syntax, no space required
@@ -854,8 +858,9 @@ def missing_whitespace_around_operator(logical_line, tokens):
                 need_space = (prev_end, start != prev_end)
             elif need_space and start == prev_end:
                 # A needed opening space was not found
-                yield prev_end, "E225 missing whitespace around operator"
-                need_space = False
+                if line[end[1]-3:end[1]] != ' :=':
+                    yield prev_end, "E225 missing whitespace around operator"
+                    need_space = False
         prev_type = token_type
         prev_text = text
         prev_end = end
