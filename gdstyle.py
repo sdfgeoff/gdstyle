@@ -406,8 +406,8 @@ def extraneous_whitespace(logical_line):
             # assert char in '([{'
             yield found + 1, "E201 whitespace after '%s'" % char
         elif line[found - 1] != ',':
-            if line[found + 2] == '=':
-                continue
+            if found + 2 < len(line) and line[found + 2] == '=':
+                    continue
             code = ('E202' if char in '}])' else 'E203')  # if char in ',;:'
             yield found, "%s whitespace before '%s'" % (code, char)
 
