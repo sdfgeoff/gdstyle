@@ -509,9 +509,7 @@ def indentation(logical_line, previous_logical, indent_char,
     if indent_level % 4:
         yield 0, tmpl % (1 + c, "indentation is not a multiple of four")
     indent_expect = previous_logical.endswith(':')
-    if indent_expect and indent_level <= previous_indent_level:
-        yield 0, tmpl % (2 + c, "expected an indented block")
-    elif not indent_expect and indent_level > previous_indent_level:
+    if not indent_expect and indent_level > previous_indent_level:
         yield 0, tmpl % (3 + c, "unexpected indentation")
 
 
@@ -951,7 +949,7 @@ def whitespace_around_named_parameter_equals(logical_line, tokens):
         prev_end = end
 
 
-@register_check
+#@register_check
 def whitespace_before_comment(logical_line, tokens):
     r"""Separate inline comments by at least two spaces.
 
@@ -984,9 +982,6 @@ def whitespace_before_comment(logical_line, tokens):
             if inline_comment:
                 if bad_prefix or comment[:1] in WHITESPACE:
                     yield start, "E262 inline comment should start with '# '"
-            elif bad_prefix and (bad_prefix != '!' or start[0] > 1):
-                if bad_prefix != '#':
-                    yield start, "E265 block comment should start with '# '"
                 elif comment:
                     yield start, "E266 too many leading '#' for block comment"
         elif token_type != tokenize.NL:
